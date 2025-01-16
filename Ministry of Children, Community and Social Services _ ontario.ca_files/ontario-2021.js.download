@@ -1,0 +1,155 @@
+/**
+ * @file
+ * Ontario.ca behaviors.
+ */
+
+(function ($, Drupal) {
+
+  'use strict';
+
+  /**
+   * Behavior description.
+   */
+  Drupal.behaviors.ontario2021 = {
+    attach: function (context, settings) {
+
+      // For security/phishing reasons, add rel="noopener noreferrer" to all
+      // links with target="_blank"
+      $('a[target="_blank"]:not([rel])').attr('rel', 'noopener noreferrer');
+
+      /**
+       * Function to handle the exit.
+       * @param {object} e
+       * @param {string} url
+       */
+      function getAway(e, url) {
+        e.preventDefault();
+        window.open(url, "_newtab");
+        window.location.replace("https://google.ca");
+      }
+
+      // For the back to top button on the same page as a specialty button.
+      const $chatbotButton = $(".chatbot-button");
+
+      if ($chatbotButton.length > 0) {
+        const backToTopNewPosition = $chatbotButton.outerHeight(true) + 15;
+        $("#back-to-top-button").css({ bottom: "calc(5% + " + backToTopNewPosition + "px)" });
+
+        // If the Exit button exists, allow users to get away by pressing it.
+        // The difference between exit and chat button is that the first one uses
+        // an anchor tag and the chat uses a button tag.
+        const $exitButton = $("a.chatbot-button").first();
+
+        if ($exitButton.length > 0) {
+          const exitUrl = $exitButton.attr("href");
+
+          if (exitUrl) {
+            $exitButton.click((e) => {
+              getAway(e, exitUrl);
+            });
+
+            $(document).keyup((e) => {
+              if (e.key === "Escape" || e.keyCode === 27) {
+                getAway(e, exitUrl);
+              }
+            });
+          }
+        }
+      }
+
+      // for the back to top button on the same page as the recaptcha button
+      if ($("script[src*='recaptcha_v3']").length > 0) {
+        $("#back-to-top-button").addClass('back-to-top--recaptcha');
+        $(".back-to-top--recaptcha").css({ bottom: 'calc(5% + ' + 65 + 'px)' }); // 65px is the approx. height of the recaptcha button
+      }
+
+      // based on Design System's recommendation of adding tabindex to the table tag used in the content area.
+      const contentTable = $(".main-content table");
+      if (contentTable.length > 0) {
+        contentTable.attr('tabindex', '0');
+      }
+
+      // lists with the type attribute
+      $('ol').each(function () {
+        const listType = $(this).attr('type');
+        if (listType === "A" || listType === "I") {
+          $(this).addClass('upper');
+        }
+      });
+
+      // adding a classname to any a tag with a nested img
+      // to target using CSS
+      let imgTags = document.querySelectorAll("a > img");
+      let figureTags = document.querySelectorAll("a > figure");
+      let divTags = document.querySelectorAll("a > div");
+
+      let elements = [...imgTags, ...figureTags, ...divTags];
+      elements.forEach(function (element) {
+        let aTag = element.parentNode;
+        aTag.classList.add("link-wrapper");
+      });
+
+      // Webforms: apply a margin bottom to the description div if there is a "more" link
+      $(".webform-submission-form .description").each(function () {
+        if ($(this).find('.webform-element-more').length > 0) {
+          $(this).css("margin-bottom", "0");
+        }
+      });
+
+      // Webforms: Function to check if a label spans more than two lines.
+      function checkLabelLength(label) {
+        const lineHeight = parseInt(label.css('line-height'));
+        const labelHeight = label.height();
+        const numberOfLines = Math.round(labelHeight / lineHeight);
+        return numberOfLines > 1.8;
+      }
+
+      // Webforms: Iterate through each form label and apply a class.
+      $('.form-required.form-label, form-optional.form-label').each(function () {
+        const label = $(this);
+        if (checkLabelLength(label)) {
+          label.addClass('long-label');
+        } else {
+          label.removeClass('long-label');
+        }
+      });
+
+      // Webforms: Append required/optional label after a required/optional single checkbox.
+      // Select all labels that directly follow a checkbox input & have class 'form-required'/'form-optional'
+      const singleCheckboxLabel = document.querySelectorAll('.webform-submission-form input[type=checkbox] + label.form-required, .webform-submission-form input[type=checkbox] + label.form-optional');
+      const language = document.documentElement.lang.toLowerCase().substring(0, 2);
+
+      // Loop through each label and append a span element
+      singleCheckboxLabel.forEach(label => {
+        if ($(label).parents('.js-webform-checkboxes').length > 0) {
+          // If this is part of the checkboxes element then the title will be marked as required/optional
+          // No need to mark it on every single checkbox option as well
+          return;
+        }
+        const isRequired = $(label).hasClass('form-required');
+        const text = isRequired ? ((language === 'fr') ? 'obligatoire' : 'required') : ((language === 'fr') ? 'facultative' : 'optional');
+        const span = document.createElement('span');
+        span.className = isRequired ? 'checkbox-required-span' : 'checkbox-optional-span';
+        span.textContent = ` (${text})`;
+
+        // Append the span to the label
+        label.appendChild(span);
+      });
+    }
+  };
+
+  // Custom loading indicator to fit the Design System theme
+  // overrides web/core/misc/ajax.js line 426
+  Drupal.theme.ajaxProgressIndicatorFullscreen = function () {
+    var language = document.documentElement.lang.toLowerCase().substring(0, 2);
+    var loadingText = (language === 'fr') ? 'Chargement' : 'Loading';
+
+    return '<div class=\'loading-indicator__overlay\' aria-hidden=\'false\' role=\'alert\' aria-live=\'assertive\'><div class=\'loading-indicator\'><svg class=\'loading-indicator__spinner\' viewBox=\'25 25 50 50\' xmlns=\'http://www.w3.org/2000/svg\'><circle fill=\'none\' stroke-width=\'4\' stroke-linecap=\'round\' cx=\'50\' cy=\'50\' r=\'20\'></circle></svg><p>' + loadingText + '</p></div></div>';
+  };
+
+  Drupal.Ajax.prototype.setProgressIndicatorFullscreen = function () {
+    this.progress.element = $(Drupal.theme('ajaxProgressIndicatorFullscreen'));
+    $('body').append(this.progress.element);
+  };
+
+}(jQuery, Drupal));

@@ -1,0 +1,163 @@
+/**
+ * This file is based on the Design System file:
+ * https://designsystem.ontario.ca/scripts/ontario-expand-collapse.js
+ *
+ * We have modified this to work in Drupal as the Design System
+ * script did not work for users that are logged in.
+ */
+(function ($, Drupal) {
+  Drupal.behaviors.ontarioExpandCollapse = {
+    attach: function (context, settings) {
+      function findElement(arr, callback) {
+        for (var i = 0; i < arr.length; i++) {
+          var match = callback(arr[i]);
+          if (match) {
+            return arr[i];
+          }
+        }
+      }
+
+      function openAllAccordions(item, content) {
+        item.classList.remove('expander--active');
+        item.classList.add('expander--active');
+        item.firstElementChild.setAttribute('aria-expanded', 'true');
+
+        content.forEach(function (item) {
+          item.classList.remove('expander__content--opened');
+          item.classList.add('expander__content--opened');
+
+          item.setAttribute('aria-hidden', 'false');
+        });
+      }
+
+      function closeAllAccordions(item, content) {
+        item.classList.remove("expander--active");
+        item.firstElementChild.setAttribute("aria-expanded", "false");
+
+        content.forEach(function (item) {
+          item.classList.remove("expander__content--opened");
+
+          item.setAttribute("aria-hidden", "true");
+        });
+      }
+
+      function closeAllAccordions(item, content) {
+        item.classList.remove('expander--active');
+        item.firstElementChild.setAttribute('aria-expanded', 'false');
+
+        content.forEach(function (item) {
+          item.classList.remove('expander__content--opened');
+
+          item.setAttribute('aria-hidden', 'true');
+        });
+      }
+
+      function toggleExpandAllButton(accordionExpandAllButton) {
+        // toggle expand all button class
+        accordionExpandAllButton.parentNode.classList.toggle('accordion__controls--active');
+
+        // toggle aria-expanded value of expand all button class if it contains active class
+        accordionExpandAllButton.parentNode.classList.contains('accordion__controls--active')
+          ? accordionExpandAllButton.setAttribute('aria-expanded', 'true')
+          : accordionExpandAllButton.setAttribute('aria-expanded', 'false');
+      }
+
+      function allAccordionsOpenCheck() {
+        // get all open accordions
+        var openExpanders = document.getElementsByClassName('expander--active');
+
+        // get total accordions
+        var accordionContainers = Array.prototype.slice.call(document.querySelectorAll('.accordion'));
+
+        if (openExpanders.length === accordionContainers.length) {
+          toggleExpandAllButton(document.getElementsByClassName('accordion__button--expand-all')[0]);
+        }
+
+        if (openExpanders.length === 0) {
+          var accordionExpandAllButton = document.getElementsByClassName('accordion__button--expand-all')[0];
+
+          accordionExpandAllButton.setAttribute('aria-expanded', 'false');
+
+          accordionExpandAllButton.parentElement.classList.remove('accordion__controls--active');
+        }
+      }
+
+      function toggleExpanderByLink(links, expandableItems) {
+        var accordions = Array.prototype.slice.call(document.querySelectorAll('.accordion'));
+
+        links.forEach(function (link) {
+          link.addEventListener('click', function () {
+            var id = this.hash.substring(1);
+
+            var relatedAccordion = findElement(accordions, function (accordion) {
+              return accordion.id === id;
+            });
+
+            relatedAccordion.classList.add('expander--active');
+
+            window.setTimeout(function () {
+              relatedAccordion.firstElementChild.focus();
+            }, 0);
+
+            var content = relatedAccordion.querySelector("[data-toggle='expander-content']");
+
+            content.classList.add('expander__content--opened');
+            content.setAttribute('aria-hidden', 'false');
+            relatedAccordion.setAttribute('aria-expanded', 'true');
+          });
+        });
+      }
+
+      function toggleExpander(expanders) {
+        expanders.forEach(function (item, index) {
+          item.addEventListener('click', function () {
+            item.parentNode.classList.toggle('expander--active');
+            var content = item.parentNode.parentNode.querySelector("[data-toggle='expander-content']");
+
+            content.classList.toggle('expander__content--opened');
+            content.classList.contains('expander__content--opened') ? content.setAttribute('aria-hidden', 'false') : content.setAttribute('aria-hidden', 'true');
+
+            this.parentNode.classList.contains('expander--active') ? this.setAttribute('aria-expanded', 'true') : this.setAttribute('aria-expanded', 'false');
+
+            // if expander is an accordion
+            if (document.getElementsByClassName('accordion__button--expand-all').length) {
+              allAccordionsOpenCheck();
+            }
+          });
+        });
+      }
+
+      function toggleAllAccordions(expandAllButton) {
+        expandAllButton.forEach(function (button, index) {
+          button.addEventListener('click', function () {
+            var accordionContainer = this.parentNode.parentNode;
+            var accordionExpandAllButton = this;
+            var accordionItems = Array.prototype.slice.call(accordionContainer.querySelectorAll('.accordion-heading'));
+
+            toggleExpandAllButton(accordionExpandAllButton);
+
+            // loop over every accordion item, add correct classes + aria attribuutes if the expand all button is active or not
+            accordionItems.forEach(function (item, index) {
+              var content = Array.prototype.slice.call(item.parentNode.querySelectorAll("[data-toggle='expander-content']"));
+
+              accordionExpandAllButton.parentNode.classList.contains('accordion__controls--active')
+                ? openAllAccordions(item, content)
+                : closeAllAccordions(item, content);
+            });
+          });
+        });
+      }
+
+      window.addEventListener('DOMContentLoaded', function () {
+        var expandableItems = Array.prototype.slice.call(document.querySelectorAll("[data-toggle='collapse']"));
+        var expandAllButtons = Array.prototype.slice.call(document.querySelectorAll('.accordion__button--expand-all'));
+        var accordionLinks = Array.prototype.slice.call(document.querySelectorAll('.accordion-link'));
+
+        toggleExpander(expandableItems);
+        toggleAllAccordions(expandAllButtons);
+        toggleExpanderByLink(accordionLinks);
+      });
+
+    }
+  }
+})(jQuery, Drupal);

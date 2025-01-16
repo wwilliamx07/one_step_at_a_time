@@ -1,0 +1,18 @@
+(function ($) {
+  $(document).ready(function () {
+
+    // A method to bring the viewer back to the previous place where they
+    // clicked on footnotes when there are multiple links with the same footnote.
+    // This js works along with onesite_directives > OnesiteRefPreprocessor.php
+    window.onesiteRef = function (element) {
+      let goBack = function (event) {
+        event.preventDefault();
+        window.scrollTo(0, event.data);
+        location.hash = 'return';
+        $(this).off('click', null, goBack);
+      }
+      let refOffset = $(element).offset().top;
+      $('#' + element.id.replace('ref-', 'return-')).click(refOffset, goBack);
+    }
+  })
+})(jQuery);

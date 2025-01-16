@@ -1,0 +1,22 @@
+/**
+ * @file
+ * CMS theme behaviors.
+ */
+
+(function ($, Drupal) {
+  'use strict';
+
+  /**
+   * Behavior description.
+   */
+
+  Drupal.behaviors.cmsThemeOntario = {
+    attach: function (context, settings) {
+      // script to remove the redundant title tag text from the toggle button in the frontend view of contrib
+      // this is to serve an accessibility rule
+      $('.toolbar-icon.toolbar-icon-toggle-vertical, .toolbar-icon.toolbar-icon-toggle-horizontal').removeAttr('title');
+
+    }
+  };
+
+} (jQuery, Drupal));

@@ -1,0 +1,55 @@
+(function($, Drupal, drupalSettings) {
+  Drupal.behaviors.onesiteDatalayer = {
+    attach() {
+      // Google Tag Manager page view data layer
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "pageview",
+        ministryTag: drupalSettings.onesiteDataLayer.ministryTag,
+        topic: drupalSettings.onesiteDataLayer.topicTag,
+        contentType: drupalSettings.onesiteDataLayer.contentTypeTag
+      });
+      // End Google Tag Manager page view data layer
+      // Google Tag Manager Menu click data layer
+      const targetNode = document.getElementById("navigation");
+      const observer = new MutationObserver(mutationsList => {
+        if (
+          mutationsList.some(
+            mutation =>
+              mutation.type === "attributes" &&
+              mutation.attributeName === "class"
+          )
+        ) {
+          const menuState = targetNode.classList.contains("navigation--open")
+            ? "open"
+            : "close";
+          if (menuState === "open") {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+              event: "click_menu",
+              menu_state: menuState
+            });
+          }
+        }
+      });
+
+      observer.observe(targetNode, {
+        attributes: true,
+        attributeFilter: ["class"]
+      });
+      // End Google Tag Manager Menu click data layer
+      // Google Tag Manager related link click data layer
+      $(".sidebar__content a").click(function() {
+        const linkText = $(this).text();
+        const linkUrl = $(this).attr("href");
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "click_related_link",
+          link_text: linkText,
+          link_url: linkUrl
+        });
+      });
+      // End Google Tag Manager related link click data layer
+    }
+  };
+})(jQuery, Drupal, drupalSettings);

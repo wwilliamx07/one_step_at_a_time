@@ -1,0 +1,148 @@
+(function ($, Drupal) {
+
+  /**
+   * Use this behavior as a template for custom Javascript.
+   */
+  Drupal.behaviors.onesiteBook = {
+    attach: function (context, settings) {
+
+      /**
+       * Opens print dialog from print output link by creating a hidden iframe.
+       * @see Drupal\onesite_book\Controller::print
+       * @param event - The event passed from the DOM (the chevron was clicked)
+       */
+      $('.book__printBook').unbind().click(function (event) {
+        const id = $(this).attr('data-book-id');
+        const iframeContainer = document.getElementById('iframe-container');
+
+        // If the iframe exists, just print instead of recreating it.
+        if (iframeContainer) {
+          iframeContainer.firstChild.contentWindow.print();
+        } else {
+          // Create iframe with hidden print-version of page to print.
+          const iframe = document.createElement('div');
+          iframe.setAttribute('id','iframe-container');
+          iframe.style.cssText = 'width: 0px; height: 0px';
+
+          // If the page is in French.
+          if (/^\/fr\//.test(location.pathname)) {
+            iframe.innerHTML = '<iframe src="/document/print/book/' + id + '/fr" onload="this.contentWindow.print();" style="visibility:hidden; width: 0px; height: 0px;"></iframe>';
+          } else {
+            iframe.innerHTML = '<iframe src="/document/print/book/' + id + '" onload="this.contentWindow.print();" style="visibility:hidden; width: 0px; height: 0px;"></iframe>';
+          }
+          document.body.appendChild(iframe);
+        }
+      });
+
+      let tocTimeout;
+
+      /**
+       * Opens/closes table of contents using slide out animation.
+       * @param event - The event passed from the DOM (the chevron was clicked)
+       */
+      $('.book__toggleTOCAnimation', context).unbind().click(function (event) {
+
+        const toc = $('#toc')
+        const btnTOCLarge = $("#btnTOCLarge");
+        const btnTOCSmall = $("#btnTOCSmall");
+
+        // focus on TOC button when TOC is hidden depending on screen size
+        function updateFocus() {
+          if (window.innerWidth >= 640) {
+            btnTOCLarge.focus();
+          } else {
+            btnTOCSmall.focus();
+          }
+        }
+
+        toc.removeClass('book__off-canvas--hide');
+
+        if (tocTimeout != null) {
+          clearTimeout(tocTimeout);
+        }
+
+        if (!toc) {
+          return;
+        }
+
+        const isOpen = toc.hasClass('js__slide-in');
+
+        // If the TOC is hidden, show it before starting the animation.
+        if (!isOpen) {
+          // Focus on close button.
+          $('#toc-close-button').focus();
+          toc.attr("aria-hidden", "false")
+        }
+
+        toc.toggleClass('js__slide-out');
+        toc.toggleClass('js__slide-in');
+
+        // If TOC is hidden, focus on the TOC button after the animation ends.
+        $(document).ready(function() {
+          if (toc.hasClass("js__slide-out")) {
+            updateFocus();
+            // Update focus on window resize
+            $(window).on("resize", updateFocus);
+          }
+        });
+
+        // If TOC is visible, hide it after the animation ends.
+        if (isOpen) {
+          // Focus on TOC button.
+          $('.book__toggleTOCAnimation').focus();
+          toc.attr("aria-hidden", "true");
+        }
+
+        // Closing the TOC panel when pressing the escape key and focus on the TOC button
+        $(document).keydown(function(event) {
+          // Check if toc is properly selected
+          if (toc.length > 0) {
+            if (event.key === "Escape" || event.code === "Escape") {
+              toc.removeClass("js__slide-in").addClass("js__slide-out").blur();
+              updateFocus();
+              $(window).on("resize", updateFocus);
+            }
+          }
+        });
+
+        // Closing the TOC panel when reaching the end of the TOC and focus on the TOC button
+        const focusable = toc.find('[href], a');
+        const lastFocusable = focusable[focusable.length - 1];
+
+        lastFocusable.addEventListener('focusout', function () {
+          toc.removeClass("js__slide-in").addClass("js__slide-out");
+          updateFocus();
+          $(window).on("resize", updateFocus);
+        });
+
+      });
+
+      /**
+       * Hide/show a collapsible list inside the TOC.
+       * @see book-tree.html.twig
+       * @param event - The event passed from the DOM (the chevron was clicked)
+       */
+
+      $('.book__toggleCollapsibleList', context).click(function (event) {
+        const chevron = $(event.target);
+        // The list item is the parent element of the chevron.
+        const li = chevron.parent();
+        // The ul element that is a child of the list item contains all the
+        // pages we need to show/hide.
+        const childList = li.find('ul');
+
+        // If childList is hidden, show it and change icon.
+        if (childList.is(':hidden')) {
+          childList.show();
+          chevron.removeClass( "book-icon__chevron-down" );
+          chevron.addClass( "book-icon__chevron-up" );
+        }
+        else { // Otherwise hide it and change icon.
+          childList.hide();
+          chevron.removeClass( "book-icon__chevron-up" );
+          chevron.addClass( "book-icon__chevron-down" );
+        }
+      });
+    }
+  }
+})(jQuery, Drupal);

@@ -1,0 +1,69 @@
+/**
+ * @file
+ * Table of contents script
+ */
+
+(function ($, Drupal) {
+
+  'use strict';
+
+  /**
+   * Creates a list item (`<li>`) containing an anchor (`<a>`) element.
+   *
+   * @param {string} title - The text content for the anchor element.
+   * @param {string} link - The URL that the anchor element should link to.
+   * @param {string} [listItemClass] - Optional. A CSS class to apply to the list item.
+   * @returns {HTMLLIElement} A list item element containing an anchor tag with the specified title and link.
+   */
+  function createTocItem(title, link, listItemClass) {
+    const listItem = document.createElement('li');
+    const listItemAnchor = document.createElement('a');
+
+    (listItemClass) ? listItem.setAttribute('class', listItemClass) : ''; //set list item class only if it is passed as an argument
+    listItemAnchor.href = link;
+
+    listItemAnchor.innerHTML = title;
+    listItem.appendChild(listItemAnchor);
+
+    return listItem;
+  }
+
+  /**
+   * Add list items to the 'On this page' template
+   */
+  Drupal.behaviors.onThisPage = {
+
+    attach: function (context, settings) {
+      let ToC = [];
+      const tocElement = $('.toc');
+      const related = $('#section-related');
+      const bodyH2 = $('.body-field h2');
+
+      bodyH2.each(function (index) {
+        const el = $(this);
+        // Add id attribute.
+        el.attr("id", "section-" + index);
+
+        const link = "#" + el.attr("id");
+        // Allow certain tags in the ToC, but filter out id from span tags.
+        const filteredHtml = el.html().replace(/<(?!\/?(abbr|cite|i|sup|sub|span)\b)[^>]*>/gi, '').replace(/<span[^>]*\sid="[^"]*"[^>]*>/gi, '<span>');
+        ToC.push(createTocItem(filteredHtml, link));
+      });
+
+      // If related section exists, add 'Related' and its associated class and
+      // ID to the ToC. (Hidden by CSS on desktop view)
+      if (Object.keys(related).length > 0) {
+        ToC.push(createTocItem(Drupal.t('Related'), '#section-related', 'related-li'));
+      }
+
+      // Populate the contents of the ToC element with all the list items.
+      tocElement.html(ToC);
+
+      // If the ToC is empty, hide the surrounding ToC HTML from the template.
+      if (bodyH2.length === 0) {
+        $('.toc__wrapper, .book__toc').hide();
+      }
+    }
+  };
+
+}(jQuery, Drupal));
