@@ -1,0 +1,56 @@
+<head>
+    <style>
+        p {
+            white-space: pre-wrap;
+            font-size: 14pt;
+        }
+        div {
+            width: 90%;
+            padding-left:5%;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <p>
+To: Angustias Auger
+From: Max Auger
+Address: 700 Gordon St, Whitby
+Date: 04/30/2027
+
+I hope this letter finds you well,
+
+Hey mom, it’s been a while, I’m sorry for not reaching out sooner. I wanted to take the time to sort myself out, after everything that’s happened since we’ve been separated. Well, mostly, at least. Anyways, I’m sure you’ve been wondering where I’ve been.
+
+After they took you away from me, they threw me into a house of horrors. Like I was some kind of farm animal being thrown into its cage. I dreaded waking up each and every morning. Constant fighting, shouting, hunger, exhaustion, torment, and agony day in and day out.  It took me three excruciating years to realize that I couldn’t live another day in that house. I wasn’t strong enough. I turned around and ran away. I know you would never do such a thing. When the going got tough, you always stuck through it, for my sake. But I’m not as strong as you. I hope that someday, you can forgive me for that.
+
+Even still, I knew I couldn’t let the sacrifices you made for me be in vain. I had to make something of myself. In the years that followed, I picked up whatever odd jobs I could. Though, there wasn’t much that I could do other than basic labour. Some nights, I would be lucky enough to get a spot in a hostel. Other nights, it would be the tunnels, subway station, or park benches. Eventually, I saved up enough money to get an apartment. A year later, I landed a job at the grocery store. Step by step, through the ups, and downs, I’m glad to say that things are a lot better now. I even got married just last month!
+
+Her name is Sasha. Sometimes, I can’t help but think of how much she reminds me of you. The way her unrelenting optimism and beautiful smile ease all of my worries. The way she works so hard and never complains, which, of course, you’d never be able to tell by her gentle hazel eyes and soft hands. Safe to say, I’m in love!
+
+Money is still tight, but my Sasha and I are in good health, and food is plentiful. We’re even working towards buying our first car, which we’ll need with a baby on the way, after all. That’s right, you’re going to be a grandmother! I hope that you’ll meet him someday.
+
+I solemnly promise you, mom, that I will do everything I can to protect that boy, just as you did for me.
+
+Love,
+
+Max
+
+        </p>
+        <button id="attachment">View Attachment</button>
+        <img id="img" style="width: 100%; display: none" src="glimmer_of_hope.png">
+    </div>
+</body>
+<script>
+    const button = document.getElementById("attachment")
+    const img = document.getElementById("img")
+    button.addEventListener("click", () => {
+        if (button.innerHTML == "View Attachment") {
+            button.innerHTML = "Hide Attachment"
+            img.style.display = "block"
+        } else {
+            button.innerHTML = "View Attachment"
+            img.style.display = "none"
+        }
+    })
+</script>
